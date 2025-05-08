@@ -1,0 +1,40 @@
+services:
+  auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-microservice
+    restart: unless-stopped
+    ports:
+      - "3001:3000"  # Mapea 3001 en host a 3000 en contenedor
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/auth-db
+    env_file:
+      - .env
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./package.json:/usr/src/app/package.json
+    depends_on:
+      - mongodb
+    networks:
+      - auth-network
+    command: yarn start:dev
+
+  mongodb:
+    image: mongo:latest
+    container_name: auth-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"  # Mapea 27018 en host a 27017 en contenedor
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - auth-network
+
+networks:
+  auth-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:
