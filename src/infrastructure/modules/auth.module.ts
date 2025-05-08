@@ -5,6 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../../application/services/auth.service';
+import { AuthUseCase } from '../../application/use-cases/auth.use-case';
+import { TokenUseCases } from '../../application/use-cases/token-use-cases';
 import { User, UserSchema } from '../database/schemas/user.schema';
 import { MongoUserRepository } from '../database/repositories/mongo-user.repository';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository';
@@ -27,6 +29,8 @@ import { USER_REPOSITORY } from '../../domain/repositories/user.repository';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AuthUseCase,         // Nuevo proveedor para el caso de uso de autenticación
+    TokenUseCases,       // Nuevo proveedor para el caso de uso de tokens
     {
       provide: USER_REPOSITORY,
       useClass: MongoUserRepository,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IUserRepository } from '../../../domain/repositories/user.repository';
@@ -7,44 +7,87 @@ import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class MongoUserRepository implements IUserRepository {
+  private readonly logger = new Logger(MongoUserRepository.name);
+  
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async findById(id: string): Promise<UserEntity | null> {
-    const user = await this.userModel.findById(id).exec();
-    if (!user) return null;
-    
-    return this.mapToDomain(user);
+    try {
+      const user = await this.userModel.findById(id).exec();
+      if (!user) {
+        this.logger.debug(`User with id ${id} not found`);
+        return null;
+      }
+      return this.mapToDomain(user);
+    } catch (error) {
+      this.logger.error(`Error finding user by id: ${error.message}`);
+      throw error;
+    }
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    const user = await this.userModel.findOne({ email }).exec();
-    if (!user) return null;
-    
-    return this.mapToDomain(user);
+    try {
+      const user = await this.userModel.findOne({ email }).exec();
+      if (!user) {
+        this.logger.debug(`User with email ${email} not found`);
+        return null;
+      }
+      return this.mapToDomain(user);
+    } catch (error) {
+      this.logger.error(`Error finding user by email: ${error.message}`);
+      throw error;
+    }
   }
 
   async create(userData: UserEntity): Promise<UserEntity> {
-    const newUser = new this.userModel(userData);
-    const savedUser = await newUser.save();
-    
-    return this.mapToDomain(savedUser);
+    try {
+      const newUser = new this.userModel(userData);
+      const savedUser = await newUser.save();
+      this.logger.log(`User created with id: ${savedUser._id}`);
+      return this.mapToDomain(savedUser);
+    } catch (error) {
+      this.logger.error(`Error creating user: ${error.message}`);
+      throw error;
+    }
   }
 
   async update(id: string, userData: Partial<UserEntity>): Promise<UserEntity | null> {
-    const updatedUser = await this.userModel
-      .findByIdAndUpdate(id, userData, { new: true })
-      .exec();
-    
-    if (!updatedUser) return null;
-    
-    return this.mapToDomain(updatedUser);
+    try {
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(id, userData, { new: true })
+        .exec();
+      
+      if (!updatedUser) {
+        this.logger.debug(`User with id ${id} not found for update`);
+        return null;
+      }
+      
+      this.logger.log(`User updated with id: ${id}`);
+      return this.mapToDomain(updatedUser);
+    } catch (error) {
+      this.logger.error(`Error updating user: ${error.message}`);
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.userModel.findByIdAndDelete(id).exec();
-    return !!result;
+    try {
+      const result = await this.userModel.findByIdAndDelete(id).exec();
+      const deleted = !!result;
+      
+      if (deleted) {
+        this.logger.log(`User deleted with id: ${id}`);
+      } else {
+        this.logger.debug(`User with id ${id} not found for deletion`);
+      }
+      
+      return deleted;
+    } catch (error) {
+      this.logger.error(`Error deleting user: ${error.message}`);
+      throw error;
+    }
   }
 
   private mapToDomain(userDoc: UserDocument): UserEntity {
