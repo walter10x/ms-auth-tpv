@@ -1,98 +1,184 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+Microservicio de Autenticación (ms-auth)
+# Microservicio de Autenticación (ms-auth)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este es un servicio independiente diseñado para la gestión de identidad y el control de acceso. Implementado con **NestJS (un framework de TypeScript para construir aplicaciones de servidor eficientes y escalables)** y siguiendo la **arquitectura hexagonal (puertos y adaptadores)**...
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Autenticación de usuarios mediante JWT (JSON Web Tokens).
+Sistema de roles predefinidos: user, admin, super-admin.
+Gestión de permisos granulares para un control de acceso detallado.
+Protección de endpoints basada en la asignación de roles.
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Arquitectura
+Este proyecto adopta la arquitectura hexagonal (también conocida como "puertos y adaptadores"), que establece una clara separación de las responsabilidades:
 
-## Project setup
+src/
+├── domain/              # Reglas de negocio, entidades y contratos
+│   ├── entities/        # User.entity.ts: Define la estructura de los usuarios.
+│   └── repositories/    # Interfaces de repositorios: Contratos para la persistencia de datos (ej., IUserRepository).
+├── application/         # Casos de uso y orquestación de la lógica de negocio
+│   ├── dtos/            # Objetos de transferencia de datos (Data Transfer Objects) para la validación (ej., auth.dto.ts).
+│   ├── services/        # Servicios de la aplicación: Orquestan la lógica entre casos de uso y repositorios (ej., auth.service.ts).
+│   └── use-cases/       # Lógica de negocio específica (ej., registro, login - auth.use-case.ts).
+└── infrastructure/      # Adaptadores que interactúan con el mundo exterior
+    ├── controllers/     # Endpoints de la API REST (ej., auth.controller.ts).
+    ├── repositories/    # Implementaciones concretas de los repositorios (ej., MongoUserRepository).
+    ├── guards/          # Mecanismos para la protección de rutas (ej., JwtAuthGuard, RolesGuard).
+    └── schemas/         # Definiciones de los esquemas de la base de datos (ej., user.schema.ts para MongoDB).
 
-```bash
-$ yarn install
-```
 
-## Compile and run the project
+Funcionalidades:
+Registro de usuarios: Permite la creación de nuevas cuentas de usuario, con la asignación automática de un rol predeterminado (user).
+Inicio de sesión (Login): Genera tokens JWT que contienen información sobre los roles y permisos del usuario autenticado. Estos tokens se utilizan para acceder a rutas protegidas.
+Verificación de tokens: Valida la autenticidad y la vigencia de los tokens JWT, asegurando que las sesiones de usuario sigan activas.
+Control de acceso: Implementa mecanismos para proteger las rutas de la API, permitiendo el acceso solo a usuarios que posean los roles o permisos necesarios.
+Creación de administradores: Proporciona un endpoint protegido (/api/v1/auth/register-admin) que permite a los superadministradores registrar nuevas cuentas con el rol de admin.
 
-```bash
-# development
-$ yarn run start
 
-# watch mode
-$ yarn run start:dev
+Requisitos:
+Antes de comenzar, asegúrate de tener instalados y configurados los siguientes elementos en tu entorno de desarrollo:
 
-# production mode
-$ yarn run start:prod
-```
+## Requisitos
 
-## Run tests
+Antes de comenzar, asegúrate de tener instalados y configurados los siguientes elementos en tu entorno de desarrollo:
 
-```bash
-# unit tests
-$ yarn run test
+* **Node.js:** Versión 18 o superior.
+* **npm** o **yarn:** Gestores de paquetes para JavaScript.
+* **TypeScript:** (Implícito con NestJS, pero asegúrate de tener un entorno compatible).
+* **Docker:** Plataforma de contenedización.
+* **Docker Compose:** Herramienta para definir y gestionar aplicaciones multi-contenedor Docker.
+* **MongoDB:** Base de datos NoSQL utilizada para la persistencia de datos.
 
-# e2e tests
-$ yarn run test:e2e
 
-# test coverage
-$ yarn run test:cov
-```
+Crea un archivo .env en la raíz de tu proyecto con la siguiente configuración:
 
-## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+MONGODB_URI=mongodb://mongodb:27017/auth-db
+JWT_SECRET=your-secret-key
+JWT_EXPIRATION=1d
+PORT=3000
+Asegúrate de reemplazar los valores predeterminados (your-secret-key) con tus propias configuraciones seguras.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Despliegue con Docker
+Utiliza Docker y Docker Compose para construir y ejecutar el microservicio:
 
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
+Bash
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+# Iniciar los contenedores definidos en docker-compose.yml en segundo plano
+docker-compose up -d
 
-## Resources
+# Verificar el estado de los contenedores en ejecución
+docker ps
 
-Check out a few resources that may come in handy when working with NestJS:
+# Ver los logs en tiempo real del contenedor auth-microservice
+docker logs -f auth-microservice
+API y Endpoints
+A continuación, se describen los endpoints disponibles en el microservicio de autenticación:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Método	Endpoint	Descripción	Roles Permitidos
+GET	/api/v1/auth/test	Endpoint de prueba para verificar que el servicio está en línea.	Público
+POST	/api/v1/auth/register	Permite registrar una nueva cuenta de usuario.	Público
+POST	/api/v1/auth/login	Permite a los usuarios iniciar sesión y obtener un token JWT.	Público
+POST	/api/v1/auth/register-admin	Permite a los superadministradores registrar nuevos administradores.	super-admin
+GET	/api/v1/auth/admin-data	Endpoint de ejemplo que requiere roles de administrador o superadministrador.	admin, super-admin
+POST	/api/v1/auth/create-user	Endpoint de ejemplo que requiere el permiso CREATE_USER.	admin, super-admin
 
-## Support
+Exportar a Hojas de cálculo
+Sistema de Roles y Permisos
+Roles Disponibles
+user: Rol predeterminado para usuarios regulares con permisos básicos.
+admin: Rol con permisos extendidos para la administración del sistema.
+super-admin: Rol con acceso completo a todas las funcionalidades y permisos del sistema.
+Permisos Implementados
+Plaintext
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+CREATE_USER: Permiso para crear nuevas cuentas de usuario.
+UPDATE_USER: Permiso para modificar información de usuarios existentes.
+DELETE_USER: Permiso para eliminar cuentas de usuario.
+VIEW_USERS: Permiso para ver la lista de usuarios.
+ADMIN_ACCESS: Permiso para acceder a funcionalidades administrativas.
+Ejemplos de Uso con Postman
+A continuación, se muestran ejemplos de cómo interactuar con algunos de los endpoints utilizando Postman (o cualquier otro cliente HTTP similar).
 
-## Stay in touch
+Registro de Usuario
+Método: POST
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+URL: /api/v1/auth/register
 
-## License
+Encabezado: Content-Type: application/json
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Cuerpo (JSON):
+
+JSON
+
+{
+  "name": "Usuario Normal",
+  "email": "user@example.com",
+  "password": "password123"
+}
+Inicio de Sesión
+Método: POST
+
+URL: /api/v1/auth/login
+
+Encabezado: Content-Type: application/json
+
+Cuerpo (JSON):
+
+JSON
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+Acceso a Ruta Protegida
+Método: GET
+
+URL: /api/v1/auth/admin-data
+
+Encabezado: Authorization: Bearer <token>
+
+Reemplaza <token> con el token JWT obtenido después de iniciar sesión.
+
+Creación de Super-Admin
+Por razones de seguridad, la creación del primer superadministrador se realiza manualmente directamente en la base de datos MongoDB:
+
+JavaScript
+
+// Abre la shell de MongoDB
+mongosh
+
+// Selecciona la base de datos
+use auth-db
+
+// Inserta un nuevo documento de usuario con el rol de super-admin
+db.users.insertOne({
+  name: "Super Admin",
+  email: "super@example.com",
+  password: "<contraseña_hasheada>", // ¡Importante! La contraseña debe estar hasheada con bcrypt
+  roles: ["super-admin"],
+  isActive: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+Nota Importante: Asegúrate de reemplazar <contraseña_hasheada> con la versión encriptada de la contraseña utilizando la biblioteca bcrypt.
+
+Solución de Problemas Comunes
+A continuación, se presentan algunos problemas comunes que pueden surgir y sus posibles soluciones:
+
+Error de Conexión a MongoDB
+Plaintext
+
+MongooseServerSelectionError: connect ECONNREFUSED
+Solución: Verifica que el servicio de MongoDB esté en ejecución (asegúrate de que el contenedor auth-mongodb esté corriendo con docker ps) y que la URI de conexión definida en tu archivo .env (MONGODB_URI) sea correcta y apunte a la ubicación correcta de tu instancia de MongoDB.
+
+Error de Autenticación
+Plaintext
+
+Unauthorized: Invalid credentials
+Solución: Comprueba cuidadosamente que el email y la contraseña que estás utilizando para iniciar sesión sean correctos y coincidan con los datos de un usuario registrado en la base de datos.
+
+Licencia
+Este proyecto está licenciado bajo la MIT License.
+
+Desarrollado con ❤️ usando NestJS y Arquitectura Hexagonal.
