@@ -10,6 +10,10 @@ import { TokenUseCases } from '../../application/use-cases/token-use-cases';
 import { User, UserSchema } from '../database/schemas/user.schema';
 import { MongoUserRepository } from '../database/repositories/mongo-user.repository';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository';
+import { RolesGuard } from '../guards/roles.guard';
+import { PermissionsGuard } from '../guards/permissions.guard';
+import { JwtStrategy } from '../strategies/jwt.strategy';
+import { LoggerService } from '../logger/logger.service'; // Importa LoggerService
 
 @Module({
   imports: [
@@ -29,13 +33,17 @@ import { USER_REPOSITORY } from '../../domain/repositories/user.repository';
   controllers: [AuthController],
   providers: [
     AuthService,
-    AuthUseCase,         // Nuevo proveedor para el caso de uso de autenticación
-    TokenUseCases,       // Nuevo proveedor para el caso de uso de tokens
+    AuthUseCase,
+    TokenUseCases,
     {
       provide: USER_REPOSITORY,
       useClass: MongoUserRepository,
     },
+    RolesGuard,
+    PermissionsGuard,
+    JwtStrategy,
+    LoggerService, // Registra LoggerService como proveedor
   ],
-  exports: [AuthService],
+  exports: [AuthService, RolesGuard, PermissionsGuard],
 })
 export class AuthModule {}
