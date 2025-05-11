@@ -3,7 +3,7 @@ export class User {
     email: string;
     password: string;
     name?: string;
-    roles: string[];
+    roles: string[]; // ['user', 'admin', superadmin']
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -15,5 +15,18 @@ export class User {
       this.createdAt = partial.createdAt || new Date();
       this.updatedAt = partial.updatedAt || new Date();
     }
+  }
+
+  export class Permission {
+    id: string;
+    name: string;
+    description: string;
+  }
+
+  export class Role {
+    id: string;
+    name: string;
+    description: string;
+    permissions: Permission[];
   }
   
